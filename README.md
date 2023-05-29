@@ -26,3 +26,8 @@
 1. Generate the proof of ownership 
 1. Transfer the ownership
 
+
+### Ref.
+watermark:
+* https://github.com/ShieldMnt/invisible-watermark
+* https://github.com/Doggettx/stable-diffusion/tree/ab0bff6bc08c0ac55e08c596c999e5e5e0a7c111/scripts
