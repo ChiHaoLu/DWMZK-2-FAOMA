@@ -1,0 +1,14 @@
+1,1,1,main.out
+2,2,1,main.owner_address
+3,3,1,main.mint_time
+4,4,1,main.token_address
+5,5,1,main.token_id
+6,6,0,main.mult1.out
+7,-1,0,main.mult1.in1
+8,-1,0,main.mult1.in2
+9,7,0,main.mult2.out
+10,-1,0,main.mult2.in1
+11,-1,0,main.mult2.in2
+12,-1,0,main.mult3.out
+13,-1,0,main.mult3.in1
+14,-1,0,main.mult3.in2
