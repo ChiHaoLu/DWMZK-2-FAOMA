@@ -1,28 +1,30 @@
 import { task, types } from "hardhat/config"
 
-task("deploy", "Deploy a Reward contract")
+task("deploy", "Deploy a FAOMAToken contract")
   .addOptionalParam(
-    "reward",
-    "Reward Contract address",
+    "FAOMAToken",
+    "FAOMAToken Contract address",
     undefined,
     types.string
   )
-  .setAction(async ({ reward: rewardAddress }, { ethers, run }) => {
-    if (!rewardAddress) {
-      const { address } = await run("deploy:reward", {})
+  .setAction(async ({ FAOMAToken: FAOMATokenAddress }, { ethers, run }) => {
+    if (!FAOMATokenAddress) {
+      const { address } = await run("deploy:FAOMAToken", {});
 
-      rewardAddress = address
+      FAOMATokenAddress = address;
     }
 
-    const RewardFactory = await ethers.getContractFactory("Reward")
+    const FAOMATokenFactory = await ethers.getContractFactory("FAOMAToken");
 
-    const RewardContract = await RewardFactory.deploy(rewardAddress)
+    const FAOMATokenContract = await FAOMATokenFactory.deploy(
+      FAOMATokenAddress
+    );
 
-    await RewardContract.deployed()
+    await FAOMATokenContract.deployed();
 
     console.info(
-      `Reward contract has been deployed to: ${RewardContract.address}`
-    )
+      `FAOMAToken contract has been deployed to: ${FAOMATokenContract.address}`
+    );
 
-    return RewardContract
-  })
+    return FAOMATokenContract;
+  });

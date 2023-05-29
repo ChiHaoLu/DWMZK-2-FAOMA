@@ -7,6 +7,10 @@
 ### Setup
 
 1. Clone the repo
+```
+$ git clone https://github.com/ChiHaoLu/DWMZK-2-FAOMA.git
+$ cd DWMZK-2-FAOMA
+```
 2. Install Circom from the [official documentation](https://docs.circom.io/getting-started/installation/)
 ```
 // Installing dependencies in Linux or MacOS
@@ -50,6 +54,9 @@ $ circom --help
 $ npm install -g snarkjs
 ```
 2. yarn
+```
+$ yarn
+```
 3. below operations...
 
 ### Contract & Circuit
