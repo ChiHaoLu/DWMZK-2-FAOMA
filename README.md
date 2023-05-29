@@ -7,7 +7,48 @@
 ### Setup
 
 1. Clone the repo
-2. install circom
+2. Install Circom from the [official documentation](https://docs.circom.io/getting-started/installation/)
+```
+// Installing dependencies in Linux or MacOS
+$ curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
+
+// Installing circom
+$ git clone https://github.com/iden3/circom.git
+$ cd circom
+$ cargo build --release
+$ cargo install --path circom
+$ circom --help
+
+   Circom Compiler 2.0.0
+   IDEN3
+   Compiler for the Circom programming language
+
+   USAGE:
+      circom [FLAGS] [OPTIONS] [input]
+
+   FLAGS:
+      -h, --help       Prints help information
+         --inspect    Does an additional check over the constraints produced
+         --O0         No simplification is applied
+      -c, --c          Compiles the circuit to c
+         --json       outputs the constraints in json format
+         --r1cs       outputs the constraints in r1cs format
+         --sym        outputs witness in sym format
+         --wasm       Compiles the circuit to wasm
+         --wat        Compiles the circuit to wat
+         --O1         Only applies var to var and var to constant simplification
+      -V, --version    Prints version information
+
+   OPTIONS:
+         --O2 <full_simplification>    Full constraint simplification [default: full]
+      -o, --output <output>             Path to the directory where the output will be written [default: .]
+
+   ARGS:
+      <input>    Path to a circuit with a main component [default: ./circuit.circom]
+
+// Installing snarkjs
+$ npm install -g snarkjs
+```
 2. yarn
 3. below operations...
 

@@ -1,5 +1,5 @@
 {
-  "name": "dappchef-contracts",
+  "name": "multimedia-security-fnp",
   "version": "1.0.0",
   "private": true,
   "main": "index.js",
@@ -8,8 +8,6 @@
     "compile": "hardhat compile",
     "deploy": "yarn compile && hardhat deploy",
     "test": "hardhat test",
-    "test-consumeMsg": "hardhat test ./test/ConsumeMsg.ts",
-    "test-reward": "hardhat test ./test/Reward.ts",
     "execute": "node -r ts-node/register -r tsconfig-paths/register hardhatRunWithArgs.ts"
   },
   "devDependencies": {
