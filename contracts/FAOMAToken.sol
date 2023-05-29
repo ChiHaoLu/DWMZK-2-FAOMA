@@ -44,7 +44,7 @@ interface IERC721Receiver {
     ) external returns (bytes4);
 }
 
-contract ERC721 is IERC721 {
+contract ERC721 is IERC721, Verifier {
     event Transfer(address indexed from, address indexed to, uint indexed id);
     event Approval(address indexed owner, address indexed spender, uint indexed id);
     event ApprovalForAll(
@@ -113,11 +113,16 @@ contract ERC721 is IERC721 {
             spender == _approvals[id]);
     }
 
-    function transferFrom(address from, address to, uint id) public {
+    function transferFrom(address from, address to, uint id, bytes memory proof, uint mintTime) public {
         require(from == _ownerOf[id], "from != owner");
         require(to != address(0), "transfer to zero address");
 
+        // 1FA
         require(_isApprovedOrOwner(from, msg.sender, id), "not authorized");
+
+        // 2FA
+        uint[] pubSignals = [uint256(uint160(msg.sender)), mintTime, address(this), id];
+        require(verifyProof(proof, pubSignals), "Your proof is not correct");
 
         _balanceOf[from]--;
         _balanceOf[to]++;
@@ -178,7 +183,7 @@ contract ERC721 is IERC721 {
     }
 }
 
-contract FAOMAToken is ERC721, Verifier {
+contract FAOMAToken is ERC721 {
 
     function mint(address to, uint id) external {
         _mint(to, id);

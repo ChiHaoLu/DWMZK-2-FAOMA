@@ -61,6 +61,32 @@ $ yarn
 
 ### Contract & Circuit
 1. Compile and generate the verifier of the circuit in the `circuits` folder.
+```
+$ cd circuits
+// Compiling the Circuits
+$ circom FAOMA.circom --r1cs --wasm --sym --c 
+$ cd FAOMA_js
+// revise the input.json
+// Generating the witness
+$ node generate_witness.js FAOMA.wasm input.json witness.wtns
+
+// power of tau - Phase 2
+$ snarkjs powersoftau prepare phase2 pot12_0001.ptau pot12_final.ptau -v
+$ snarkjs groth16 setup FAOMA.r1cs pot12_final.ptau FAOMA_0000.zkey
+
+// Export the key
+$ snarkjs zkey contribute FAOMA_0000.zkey FAOMA_0001.zkey --name="1st Contributor Name" -v
+$ snarkjs zkey export verificationkey FAOMA_0001.zkey verification_key.json
+
+// Generating a Proof
+$ snarkjs groth16 prove FAOMA_0001.zkey witness.wtns proof.json public.json
+
+// Verify the proof
+$ snarkjs groth16 verify verification_key.json public.json proof.json
+
+// Generating Verifier
+$ snarkjs zkey export solidityverifier FAOMA_0001.zkey verifier.sol
+```
 1. Deploy the ERC-721 Contract in the `contracts` folder with `deploy.ts` in the `tasks` folder, which inherited the verifier contract.
 
 ### Image
