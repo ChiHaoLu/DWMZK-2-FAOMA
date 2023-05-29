@@ -1,17 +1,28 @@
 # Multimedia Security FNP
 
-- **Title:** ???
-- **Teammate:** 
- - [B08303113 ECON Senior 陸紀豪](https://chihaolu.me)
- - B08303110 ECON Senior 陳彥龍
+- See the whole project introduction & info. in the [Report](https://github.com/ChiHaoLu/DWMZK-2-FAOMA/blob/master/report.md).
 
-### Requirements
-- A group (with Maximum 3 members) tries to realize/investigate a security related final project proposed by the group members.
-- The grading depends on the satisfaction of the group’s 30 mins. Oral presentation in the Final.
+## Workflow
 
-Further investigate/realize your interested topic.
+### Setup
 
-- a report (pdf-file)
-- a silde presentation file (with 30mins vocal explanation recorded slide-by-slide) of (a)
-- slides (pptx-file, optional)
-請將上述(a), (b), (c)打包成壓縮檔(zip)繳交, 檔名 : 王小明_r09922XXX (name_student ID)
+1. Clone the repo
+2. install circom
+2. yarn
+3. below operations...
+
+### Contract & Circuit
+1. Compile and generate the verifier of the circuit in the `circuits` folder.
+1. Deploy the ERC-721 Contract in the `contracts` folder with `deploy.ts` in the `tasks` folder, which inherited the verifier contract.
+
+### Image
+1. Put the target image in the `images` folder.
+1. Use the watermarking script in the `scripts` folder to watermark the target image.
+1. Start the protocol website in the `client`.
+
+### Operations in the protocol website
+1. Mint the target NFT (and input your image tokenURI)
+1. Check the ownership 
+1. Generate the proof of ownership 
+1. Transfer the ownership
+
