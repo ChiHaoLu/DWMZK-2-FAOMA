@@ -15,4 +15,3 @@ Further investigate/realize your interested topic.
 - a silde presentation file (with 30mins vocal explanation recorded slide-by-slide) of (a)
 - slides (pptx-file, optional)
 請將上述(a), (b), (c)打包成壓縮檔(zip)繳交, 檔名 : 王小明_r09922XXX (name_student ID)
-
