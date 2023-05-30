@@ -37,7 +37,7 @@ snarkjs groth16 verify verification_key.json public.json proof.json
 
 # # Generating Verifier
 echo "Generating Verifier Contract"
-snarkjs zkey export solidityverifier FAOMA_0001.zkey ../contracts/Verifier.sol
+snarkjs zkey export solidityverifier FAOMA_0002.zkey ../contracts/Verifier.sol
 
 # # Generating calldata
 echo "Generating verifyProof calldata"

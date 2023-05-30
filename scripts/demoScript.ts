@@ -2,7 +2,6 @@ import { ethers } from "hardhat";
 import prompts from "prompts";
 
 async function main() {
-
   // Wallet Setup
   const accounts = await ethers.getSigners();
   const wallet = accounts[0];
@@ -32,7 +31,7 @@ async function main() {
   const tokenID = 0;
   const tokenURI = "ipfs://";
   console.log(
-    `Mint the Token ${tokenID} with tokenURI - "${tokenURI}" to Owner ${wallet.address} `
+    `\nMint the Token ${tokenID} with tokenURI - "${tokenURI}" to Owner ${wallet.address} `
   );
   await FAOMATokenContract.mint(
     wallet.address,
@@ -42,8 +41,13 @@ async function main() {
   );
   const rtnTokenURI = await FAOMATokenContract.tokenURI(tokenID);
   console.log(`Return URI of the  Token ${tokenID}: `, rtnTokenURI);
-  const rtnOwnership = await FAOMATokenContract.ownerOf(tokenID);
+  let rtnOwnership = await FAOMATokenContract.ownerOf(tokenID);
   console.log(`Return Owner Address of the Token ${tokenID}: `, rtnOwnership);
+  let rtnVerifierAddr = await FAOMATokenContract.verifierOf(tokenID);
+  console.log(
+    `Return Verifier Address of the Token ${tokenID}: `,
+    rtnVerifierAddr
+  );
 
   // Transfer the ownership
   const calldata = await promptCalldata();
@@ -53,6 +57,16 @@ async function main() {
   const _pC = calldataArray[2];
   const _pubSignals = calldataArray[3];
 
+  const newVerifierAddr = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+  console.log(
+    `\nTransfer the Token ${tokenID} 
+        - from Owner ${wallet.address} 
+        - to Receiver ${receiver.address} 
+        - with new verifier contract address ${newVerifierAddr}
+        - and proof:`
+  );
+  console.log(calldataArray);
+
   await FAOMATokenContract.transferFrom(
     wallet.address,
     receiver.address,
@@ -61,7 +75,15 @@ async function main() {
     _pB,
     _pC,
     _pubSignals,
-    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    newVerifierAddr
+  );
+
+  rtnOwnership = await FAOMATokenContract.ownerOf(tokenID);
+  console.log(`Return Owner Address of the Token ${tokenID}: `, rtnOwnership);
+  rtnVerifierAddr = await FAOMATokenContract.verifierOf(tokenID);
+  console.log(
+    `Return Verifier Address of the Token ${tokenID}: `,
+    rtnVerifierAddr
   );
 }
 

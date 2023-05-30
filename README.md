@@ -83,7 +83,7 @@ $ yarn start:localNode
 ```sh
 $ yarn deploy:Token
 >
-FAOMATokenContract deployed to 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9
+FAOMATokenContract deployed to 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853
 ✨  Done in 3.00s.
 ```
 
@@ -102,13 +102,13 @@ Generating Verifier Contract
 [INFO]  snarkJS: > Detected protocol: groth16
 [INFO]  snarkJS: EXPORT VERIFICATION KEY FINISHED
 Generating verifyProof calldata
-["0x214a29fa5420abd96b9384a2a96a83b0e906b7d0d666a103ebb22bbdb18715db", "0x2e0aec8b93f48f44ba426b46bce4222d2266191ef5450167915406872da9492f"],[["0x06e1eb47d6eb96b074ab452eb48fbbc06141838205dafd94c27ad0574f311c25", "0x2d2bf57deebd1a7ddf984da3d1915ff6a4867675602a325f5ac21cc4d0f670ce"],["0x153159babab02438395e5e91ac1cb4a6687a50e8f00bea21e26692f6925a64af", "0x1e6d3a371679afa67683cb5306ad46992e249473a0658f734272f15daa378d7d"]],["0x0389900f8cc14dd10bb6543d5fd7b08faae588fe33e259fd98ec37b1091c1622", "0x2f3ef367a4ec5035c6d0fb5df8e629ad36c6224d22603924c1dffb0095167863"],["0x1dafb491ddc564ff3a00f7b91062fab2ed332f8e35ba7c9c34aedb1b7f1f06c1"]
+["0x0382776eb1357de8db42e3934e8096627597ab787af67f36c6619cd87dd1fefe", "0x1cf7753f14f2ff96357de2cd02293f4730f931be864575b237cf8ce25498e752"],[["0x1994485e6678734190bf3f173b3113da83404440c506a2564577532ec3c96dc9", "0x2914e04374fb0d8edd441f2b5965aa9b61747ad806ceba131b8b6a9a611a1784"],["0x2a838da22c5a3e359a8be7937abca7be716343f65c1e03c380adbd6e847e84cf", "0x0b99e4dbf0c0230ac672e33ec63a26eca2e5851f68d7ae34211ac6bae5bd197e"]],["0x068f5af5c3e7ea59acc6414e4fbe3a4f7d9aaa966848fcfdae93d6923b3aef01", "0x2449799406b0955ecab548fdc34d4001aa0b6dc8c3850962c3478bdc8f598a9a"],["0x12f60538e3f1ea532c768145dd585b68c37814b296c49377df123ec80be9a0ab"]
 ```
 1. Deploy the Verifier Contract with `deployVerifier.ts` in the `scripts` folder ,and Record the address.
 ```sh
 $ yarn deploy:Verifier
 >
-VerifierContract deployed to 0x5FC8d32690cc91D4c39d9d3abcBD16989F875707
+VerifierContract deployed to 0x8A791620dd6260079BF849Dc5567aDC3F2FdC318
 ✨  Done in 2.60s.
 ```
 
@@ -124,6 +124,52 @@ $ yarn execute scripts/
 2. Run the `demoScript.ts` in the local devnet.
 ```sh
 $ yarn demo
+>
+$ node -r ts-node/register -r tsconfig-paths/register hardhatRunWithArgs.ts scripts/demoScript.ts --network localhost
+Operator Address:  0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+Receiver Address:  0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+✔ Please enter the TokenAddress: … 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853
+FAOMATokenContract Address: 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853
+✔ Please enter the VerifierAddress: … 0x8A791620dd6260079BF849Dc5567aDC3F2FdC318
+VerifierContract Address: 0x8A791620dd6260079BF849Dc5567aDC3F2FdC318
+
+Mint the Token 0 with tokenURI - "ipfs://" to Owner 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 
+Return URI of the  Token 0:  ipfs://
+Return Owner Address of the Token 0:  0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+Return Verifier Address of the Token 0:  0x8A791620dd6260079BF849Dc5567aDC3F2FdC318
+✔ Please enter the Calldata of your token transfer verifyProof: … ["0x0382776eb1357de8db42e3934e8096627597ab787af67f36c6619cd87dd1fefe", "0x1cf7753f14f2ff96357de2cd02293f4730f931be864575b237cf8ce25498e752"],[["0x1994485e6678734190bf3f173b3113da83404440c506a2564577532ec3c96dc9", "0x2914e04374fb0d8edd441f2b5965aa9b61747ad806ceba131b8b6a9a611a1784"],["0x2a838da22c5a3e359a8be7937abca7be716343f65c1e03c380adbd6e847e84cf", "0x0b99e4dbf0c0230ac672e33ec63a26eca2e5851f68d7ae34211ac6bae5bd197e"]],["0x068f5af5c3e7ea59acc6414e4fbe3a4f7d9aaa966848fcfdae93d6923b3aef01", "0x2449799406b0955ecab548fdc34d4001aa0b6dc8c3850962c3478bdc8f598a9a"],["0x12f60538e3f1ea532c768145dd585b68c37814b296c49377df123ec80be9a0ab"]
+
+Transfer the Token 0 
+   - from Owner 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 
+   - to Receiver 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 
+   - with new verifier contract address 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+   - and proof:
+[
+  [
+    '0x0382776eb1357de8db42e3934e8096627597ab787af67f36c6619cd87dd1fefe',
+    '0x1cf7753f14f2ff96357de2cd02293f4730f931be864575b237cf8ce25498e752'
+  ],
+  [
+    [
+      '0x1994485e6678734190bf3f173b3113da83404440c506a2564577532ec3c96dc9',
+      '0x2914e04374fb0d8edd441f2b5965aa9b61747ad806ceba131b8b6a9a611a1784'
+    ],
+    [
+      '0x2a838da22c5a3e359a8be7937abca7be716343f65c1e03c380adbd6e847e84cf',
+      '0x0b99e4dbf0c0230ac672e33ec63a26eca2e5851f68d7ae34211ac6bae5bd197e'
+    ]
+  ],
+  [
+    '0x068f5af5c3e7ea59acc6414e4fbe3a4f7d9aaa966848fcfdae93d6923b3aef01',
+    '0x2449799406b0955ecab548fdc34d4001aa0b6dc8c3850962c3478bdc8f598a9a'
+  ],
+  [
+    '0x12f60538e3f1ea532c768145dd585b68c37814b296c49377df123ec80be9a0ab'
+  ]
+]
+Return Owner Address of the Token 0:  0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+Return Verifier Address of the Token 0:  0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+✨  Done in 18.48s.
 ```
 
 ### Operations in the protocol website
