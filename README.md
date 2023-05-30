@@ -62,27 +62,32 @@ $ npm install -g snarkjs
 ```sh
 $ yarn
 ```
-3. Continure with below operations
+3. Continue the below operations
 
 ### Contract
 
-1. Compile the contract in the `contracts` folder.
-```sh
-$ yarn compile
-```
 1. Deploy the ERC-721 Contract in the `contracts` folder with `deployToken.ts` in the `scripts` folder.
 ```sh
-$ yarn execute scripts/deployToken.ts
+$ hardhat deploy:Token
 ```
 
 ### Circuit
-1. Compile and generate the verifier of your token circuit in the `circuits` folder.
+1. Compile circuit and generate the verifier of your token circuit in the `circuits` folder. Make sure your `input.json` is correct, and you have download the **Power of Tau** from [here](https://github.com/iden3/snarkjs#guide).
 ```sh
 $ bash ./scripts/build_circuits.sh
+>
+...
+[INFO]  snarkJS: OK!
+Generating Verifier Contract
+[INFO]  snarkJS: EXPORT VERIFICATION KEY STARTED
+[INFO]  snarkJS: > Detected protocol: groth16
+[INFO]  snarkJS: EXPORT VERIFICATION KEY FINISHED
+Generating verifyProof calldata
+["0x0f546fe38ca0aef47eb0de71883ef213dd69d8138268a18c8fa82a7419b6027d", "0x2c72ec1b1bd13a6a316f615544fe8d896b4051f0c61c4285c4dd075e593049dd"],[["0x1d4603fd3bf8e1267da31a500499b9a76c5b1de7de3841cf668b55d3268df275", "0x09c0ef14562ac3a62f2a261ea17f927ddf6b46cffc670e5bca6a87af48a71afd"],["0x2b4c0e56cb2a3ab1fae4ebb8d91deb08e5416792817abdf69aeae16caec4d1af", "0x102690339d0fea73f2affd5eeabe093ef30f01d61ec44ddca29bce26f040e17f"]],["0x0b90f3c442294cf76ace79615cd414290688bbb2c4f7b42360e97be58398df91", "0x2bca0766be34beba92cc7ff07918ba63e12d3925a4fb9ecc3cb095f816d55a10"],["0x0444730cff8dac3879defb6c24c6e0aa50ec55b2bd1aabe444a8e1f189e2ed62"]
 ```
 1. Deploy the Verifier Contract with `deployVerifier.ts` in the `scripts` folder ,and Record the address.
 ```sh
-$ yarn execute scripts/deployVerifier.ts
+$ hardhat deploy:Verifier
 ```
 
 ### Generating Image with watermark

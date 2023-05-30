@@ -6,7 +6,8 @@
   "scripts": {
     "start": "hardhat node & yarn compile",
     "compile": "hardhat compile",
-    "deploy": "yarn compile && hardhat deployToken && hardhat deployVerifier",
+    "deploy:Token": "yarn compile && hardhat deployToken",
+    "deploy:Verifier": "yarn compile && hardhat deployVerifier",
     "test": "hardhat test",
     "execute": "node -r ts-node/register -r tsconfig-paths/register hardhatRunWithArgs.ts"
   },

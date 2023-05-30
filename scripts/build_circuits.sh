@@ -23,8 +23,8 @@ snarkjs groth16 setup FAOMA.r1cs powersOfTau28_hez_final_14.ptau FAOMA_0000.zkey
 
 # Export the key
 echo "Generating the Key"
-snarkjs zkey contribute FAOMA_0000.zkey FAOMA_0001.zkey --name="1st Contributor Name" -v
-snarkjs zkey contribute FAOMA_0001.zkey FAOMA_0002.zkey --name="Second contribution Name" -v -e="Another random entropy"
+snarkjs zkey contribute FAOMA_0000.zkey FAOMA_0001.zkey --name="1st contribution Name" -v -e="Another random entropy for 1st contribution"
+snarkjs zkey contribute FAOMA_0001.zkey FAOMA_0002.zkey --name="Second contribution Name" -v -e="Another random entropy for 2nd contribution"
 snarkjs zkey export verificationkey FAOMA_0002.zkey verification_key.json
 
 # Generating a Proof
@@ -36,9 +36,9 @@ echo "Verify the proof"
 snarkjs groth16 verify verification_key.json public.json proof.json
 
 # # Generating Verifier
-# echo "Generating Verifier Contract"
-# snarkjs zkey export solidityverifier FAOMA_0001.zkey ../../contracts/verifier.sol
+echo "Generating Verifier Contract"
+snarkjs zkey export solidityverifier FAOMA_0001.zkey ../contracts/Verifier.sol
 
 # # Generating calldata
-# echo "Generating verifyProof calldata"
-# snarkjs generatecall
+echo "Generating verifyProof calldata"
+snarkjs generatecall
