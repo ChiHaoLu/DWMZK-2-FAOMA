@@ -70,15 +70,15 @@ In our protocol system, we not only aim to establish a genuine verification of o
 
 TBD
 
-### 3.3 Specification - Circuit
+### 3.3 Specification - Circuit (ZKP Program)
 
 TBD
 
-### 3.4 Specification - Smart Contract
+### 3.4 Specification - Smart Contract (On-Chain Verifier)
 
 TBD
 
-### 3.5 Specification - Website
+### 3.5 Specification - Website (Client)
 
 TBD
 
