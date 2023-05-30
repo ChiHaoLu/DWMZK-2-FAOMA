@@ -156,5 +156,5 @@ Lastly, as an additional explanation, using the secret alone is sufficient to pr
 ---
 
 ## 7. Reference
-
-- [Tornado Cash]()
+- [Circom2 Documentation](https://docs.circom.io/)
+- [SnarkJS](https://github.com/iden3/snarkjs)

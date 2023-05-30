@@ -4,9 +4,9 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "start": "hardhat node & yarn compile && yarn deploy --network localhost",
+    "start": "hardhat node & yarn compile",
     "compile": "hardhat compile",
-    "deploy": "yarn compile && hardhat deploy",
+    "deploy": "yarn compile && hardhat deployToken && hardhat deployVerifier",
     "test": "hardhat test",
     "execute": "node -r ts-node/register -r tsconfig-paths/register hardhatRunWithArgs.ts"
   },
