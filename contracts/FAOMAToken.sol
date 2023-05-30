@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "./Verifier.sol";
+interface IVerifier {
+    function verifyProof(
+        bytes memory proof,
+        uint256[4] memory pubSignals
+    ) external view returns (bool r);
+}
 
 interface IERC165 {
     function supportsInterface(bytes4 interfaceID) external view returns (bool);
@@ -12,16 +17,13 @@ interface IERC721 is IERC165 {
 
     function ownerOf(uint tokenId) external view returns (address owner);
 
-    function safeTransferFrom(address from, address to, uint tokenId) external;
-
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint tokenId,
-        bytes calldata data
+    function transferFrom(address from, 
+        address to, 
+        uint id, 
+        bytes memory proof, 
+        uint mintTime, 
+        address newVerifierAddr
     ) external;
-
-    function transferFrom(address from, address to, uint tokenId) external;
 
     function approve(address to, uint tokenId) external;
 
@@ -44,7 +46,7 @@ interface IERC721Receiver {
     ) external returns (bytes4);
 }
 
-contract ERC721 is IERC721, Verifier {
+abstract contract ERC721 is IERC721 {
     event Transfer(address indexed from, address indexed to, uint indexed id);
     event Approval(address indexed owner, address indexed spender, uint indexed id);
     event ApprovalForAll(
@@ -64,6 +66,10 @@ contract ERC721 is IERC721, Verifier {
 
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) public isApprovedForAll;
+
+    // Mapping from token to verifier contract address
+    mapping(uint => IVerifier) public verifierOf;
+
 
     function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
         return
@@ -113,59 +119,48 @@ contract ERC721 is IERC721, Verifier {
             spender == _approvals[id]);
     }
 
-    function transferFrom(address from, address to, uint id, bytes memory proof, uint mintTime) public {
+    function transferFrom(
+        address from, 
+        address to, 
+        uint id, 
+        bytes memory proof, 
+        uint mintTime, 
+        address newVerifierAddr
+        ) public {
         require(from == _ownerOf[id], "from != owner");
         require(to != address(0), "transfer to zero address");
-
-        // 1FA
-        require(_isApprovedOrOwner(from, msg.sender, id), "not authorized");
-
-        // 2FA
-        uint[] pubSignals = [uint256(uint160(msg.sender)), mintTime, address(this), id];
-        require(verifyProof(proof, pubSignals), "Your proof is not correct");
-
-        _balanceOf[from]--;
-        _balanceOf[to]++;
-        _ownerOf[id] = to;
-
-        delete _approvals[id];
-
-        emit Transfer(from, to, id);
-    }
-
-    function safeTransferFrom(address from, address to, uint id) external {
-        transferFrom(from, to, id);
-
         require(
             to.code.length == 0 ||
                 IERC721Receiver(to).onERC721Received(msg.sender, from, id, "") ==
                 IERC721Receiver.onERC721Received.selector,
             "unsafe recipient"
         );
+
+        // 1FA
+        require(_isApprovedOrOwner(from, msg.sender, id), "not authorized");
+
+        // 2FA
+        uint256[4] memory pubSignals  = [uint256(uint160(msg.sender)), mintTime, uint256(uint160(address(this))), id];
+        require(verifierOf[id].verifyProof(proof, pubSignals), "Your proof is not correct");
+
+        _balanceOf[from]--;
+        _balanceOf[to]++;
+        _ownerOf[id] = to;
+        verifierOf[id] = IVerifier(newVerifierAddr);
+
+        delete _approvals[id];
+
+        emit Transfer(from, to, id);
     }
 
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint id,
-        bytes calldata data
-    ) external {
-        transferFrom(from, to, id);
 
-        require(
-            to.code.length == 0 ||
-                IERC721Receiver(to).onERC721Received(msg.sender, from, id, data) ==
-                IERC721Receiver.onERC721Received.selector,
-            "unsafe recipient"
-        );
-    }
-
-    function _mint(address to, uint id) internal {
+    function _mint(address to, uint id, address verifierAddr) internal {
         require(to != address(0), "mint to zero address");
         require(_ownerOf[id] == address(0), "already minted");
 
         _balanceOf[to]++;
         _ownerOf[id] = to;
+        verifierOf[id] = IVerifier(verifierAddr);
 
         emit Transfer(address(0), to, id);
     }
@@ -181,12 +176,39 @@ contract ERC721 is IERC721, Verifier {
 
         emit Transfer(owner, address(0), id);
     }
+
+    function _exists(uint256 id) internal view returns(bool) {
+        return _ownerOf[id] != address(0);
+    }
 }
 
-contract FAOMAToken is ERC721 {
+abstract contract ERC721URIStorage is ERC721 {
 
-    function mint(address to, uint id) external {
-        _mint(to, id);
+    // tokenId => tokenURI
+    mapping(uint256 => string) internal _tokenURIs;
+
+    function tokenURI(uint256 tokenId) public view virtual returns (string memory) {
+
+        string memory _tokenURI = _tokenURIs[tokenId];
+
+        if (bytes(_tokenURI).length > 0) {
+            return string(abi.encodePacked(_tokenURI));
+        }
+
+        return _tokenURIs[tokenId];
+    }
+
+    function _setTokenURI(uint256 id, string memory _tokenURI) internal virtual {
+        require(_exists(id), "ERC721URIStorage: URI set of nonexistent token");
+        _tokenURIs[id] = _tokenURI;
+    }
+}
+
+contract FAOMAToken is ERC721URIStorage {
+
+    function mint(address to, uint id, string memory _tokenURI, address verfierAddr) external {
+        _mint(to, id, verfierAddr);
+        _setTokenURI(id, _tokenURI);
     }
 
     function burn(uint id) external {
