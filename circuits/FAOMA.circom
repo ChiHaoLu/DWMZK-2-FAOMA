@@ -15,16 +15,6 @@ template Hash() {
     hash <== hasher.outs[0];
 }
 
-template Multiplier2(){
-   //Declaration of signals.
-   signal input in1;
-   signal input in2;
-   signal output out;
-
-   //Statements.
-   out <== in1 * in2;
-}
-
 template FAOMA() {
     signal input owner_address;
     signal input mint_time;
@@ -33,14 +23,20 @@ template FAOMA() {
     signal input secret;
     signal output out;
 
-    component mult = Multiplier2();
-    component hasher;
+    component hasher1 = Hash();
+    component hasher2 = Hash();
+    component hasher3 = Hash();
+    component hasher4 = Hash();
 
-    mult.in1 <== owner_address - mint_time;
-    mult.in2 <== token_address;
-    hasher.a <== mult.out - token_id;
-    hasher.b <== secret;
-    out <== hasher.hash;
+    hasher1.a <== owner_address;
+    hasher1.b <== mint_time;
+    hasher2.a <== hasher1.hash;
+    hasher2.b <== token_address;
+    hasher3.a <== hasher2.hash;
+    hasher3.b <== token_id;
+    hasher4.a <== hasher3.hash;
+    hasher4.b <== secret;
+    out <== hasher4.hash;
 }
 
 component main = FAOMA();

@@ -1,9 +1,14 @@
 # Multimedia Security FNP
 
-- See the whole project introduction & info. in the [Report](https://github.com/ChiHaoLu/DWMZK-2-FAOMA/blob/master/report.md).
+## About FNP
+> Submit the final report `.zip` before 6/5 23:59. 
+
+See the whole project introduction & info. in the [Report](https://github.com/ChiHaoLu/DWMZK-2-FAOMA/blob/master/report) folder.
+- [Report](): `.pdf`, realize/investigate a security related final project proposed by the group members
+- [Oral Presentation](): `.mp4`, with 30mins vocal explanation recorded slide-by-slide
+- [Presentation Slides](): `.ppt`
 
 ## Workflow
-
 ### Setup
 
 1. Clone the repo
@@ -117,6 +122,9 @@ $ yarn execute scripts/
 
 ### Operations in the protocol website
 1. Start the protocol website in the `client`.
+```sh
+$ yarn start
+```
 1. Mint the target NFT (input your image tokenURI, verifier address)
 1. Check the ownership 
 1. Generate the proof of ownership 
