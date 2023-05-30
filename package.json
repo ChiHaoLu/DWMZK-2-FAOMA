@@ -10,6 +10,7 @@
     "deploy:Token": "yarn compile && yarn execute scripts/deployToken.ts --network localhost",
     "deploy:Verifier": "yarn compile && yarn execute scripts/deployVerifier.ts --network localhost",
     "test": "hardhat test",
+    "demo": "yarn compile && yarn execute scripts/demoScript.ts --network localhost",
     "execute": "node -r ts-node/register -r tsconfig-paths/register hardhatRunWithArgs.ts"
   },
   "devDependencies": {

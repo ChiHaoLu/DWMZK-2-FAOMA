@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const VerifierFactory = await ethers.getContractFactory("Verifier");
+  const VerifierFactory = await ethers.getContractFactory("Groth16Verifier");
   const VerifierContract = await VerifierFactory.deploy();
 
   await VerifierContract.deployed();
@@ -9,8 +9,6 @@ async function main() {
   console.log(`VerifierContract deployed to ${VerifierContract.address}`);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;

@@ -1,29 +1,79 @@
-import { ethers, network } from "hardhat";
+import { ethers } from "hardhat";
 import prompts from "prompts";
 
 async function main() {
-  // Setup
-  const provider = network.provider;
+  // Wallet Setup
   const accounts = await ethers.getSigners();
+  const wallet = accounts[0];
+  const receiver = accounts[1];
+  console.log("Operator Address: ", wallet.address);
+  console.log("Receiver Address: ", receiver.address);
 
-  // Deploy FAOMA Token Contract
-  const FAOMATokenFactory = await ethers.getContractFactory("FAOMAToken");
-  const FAOMATokenContract = await FAOMATokenFactory.deploy();
-  await FAOMATokenContract.deployed();
-  console.log(`FAOMATokenContract deployed to ${FAOMATokenContract.address}`);
+  // Connect FAOMA Token Contract
+  const tokenAddress = await promptTokenAddress();
+  const FAOMATokenContract = await ethers.getContractAt(
+    "FAOMAToken",
+    tokenAddress,
+    wallet
+  );
+  console.log(`FAOMATokenContract Address: ${FAOMATokenContract.address}`);
 
-  // Deploy Verifier Contract
-  const VerifierFactory = await ethers.getContractFactory("Verifier");
-  const VerifierContract = await VerifierFactory.deploy();
-  await VerifierContract.deployed();
-  console.log(`VerifierContract deployed to ${VerifierContract.address}`);
+  // Connect Verifier Contract
+  const VerifierContract = await ethers.getContractAt(
+    "Groth16Verifier",
+    tokenAddress,
+    wallet
+  );
+  console.log(`VerifierContract Address: ${VerifierContract.address}`);
 
   // Mint Token
-
+  const tokenID = 0;
+  const tokenURI = await promptTokenURI();
+  console.log(
+    `Mint the Token - ${tokenID} with tokenURI - ${tokenURI} to Owner ${wallet.address} `
+  );
+  await FAOMATokenContract.mint(
+    wallet.address,
+    tokenID,
+    tokenURI as string,
+    VerifierContract.address
+  );
+  const rtnTokenURI = await FAOMATokenContract.tokenURI(tokenID);
+  console.log("Return Token URI: ", rtnTokenURI);
+  const rtnOwnership = await FAOMATokenContract.ownerOf(tokenID);
+  console.log("Return Owner Address: ", rtnOwnership);
 
   // Transfer the ownership
+  const calldata = await promptCalldata();
+  const proof = [];
+  const pubSignals = [];
+  await FAOMATokenContract.approve(receiver.address, tokenID);
+  await FAOMATokenContract.transferFrom(
+    wallet.address,
+    receiver.address,
+    tokenID,
+    proof,
+    pubSignals,
+    "0x"
+  );
+}
 
+async function promptTokenAddress() {
+  const response = await prompts({
+    type: "text",
+    name: "TokenAddress",
+    message: "Please enter the TokenAddress:",
+  });
+  return response.TokenAddress;
+}
 
+async function promptVerifierAddress() {
+  const response = await prompts({
+    type: "text",
+    name: "VerifierAddress",
+    message: "Please enter the VerifierAddress:",
+  });
+  return response.VerifierAddress;
 }
 
 async function promptTokenURI() {
@@ -44,8 +94,6 @@ async function promptCalldata() {
   return response.Calldata;
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;

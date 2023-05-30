@@ -79,7 +79,7 @@ FAOMATokenContract deployed to 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
 ### Circuit
-1. Compile circuit and generate the verifier of your token circuit in the `circuits` folder. Make sure your `input.json` is correct, and you have download the **Power of Tau** from [here](https://github.com/iden3/snarkjs#guide).
+1. Compile circuit and generate the verifier of your token circuit in the `circuits` folder. Make sure your `input.json` is correct, and you have downloaded the **Power of Tau** from [here](https://github.com/iden3/snarkjs#guide).
 ```sh
 $ bash ./scripts/build_circuits.sh
 >
@@ -103,6 +103,13 @@ $ yarn deploy:Verifier
 1. Use the watermarking script in the `scripts` folder to watermark the target image.
 ```sh
 $ yarn execute scripts/
+```
+
+### Operations in the Demo Script 
+1. Prepare the `FAOMAToken Address`, `Verifier Address`, `TokenURI`, `verifyProof calldata`.
+2. Run the `demoScript.ts` in the local devnet.
+```
+$ yarn demo
 ```
 
 ### Operations in the protocol website
