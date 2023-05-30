@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 interface IVerifier {
     function verifyProof(
         bytes memory proof,
-        uint256[4] memory pubSignals
+        uint[] memory pubSignals
     ) external view returns (bool r);
 }
 
@@ -17,11 +17,12 @@ interface IERC721 is IERC165 {
 
     function ownerOf(uint tokenId) external view returns (address owner);
 
-    function transferFrom(address from, 
+    function transferFrom(
+        address from, 
         address to, 
         uint id, 
-        bytes memory proof, 
-        uint mintTime, 
+        bytes memory proof,
+        uint[] memory pubSignals, 
         address newVerifierAddr
     ) external;
 
@@ -123,8 +124,8 @@ abstract contract ERC721 is IERC721 {
         address from, 
         address to, 
         uint id, 
-        bytes memory proof, 
-        uint mintTime, 
+        bytes memory proof,
+        uint[] memory pubSignals, 
         address newVerifierAddr
         ) public {
         require(from == _ownerOf[id], "from != owner");
@@ -140,7 +141,9 @@ abstract contract ERC721 is IERC721 {
         require(_isApprovedOrOwner(from, msg.sender, id), "not authorized");
 
         // 2FA
-        uint256[4] memory pubSignals  = [uint256(uint160(msg.sender)), mintTime, uint256(uint160(address(this))), id];
+        require(pubSignals[0] == uint256(uint160(msg.sender)), "proof owner != sender");
+        require(pubSignals[2] == uint256(uint160(address(this))), "proof contract != this contract");
+        require(pubSignals[3] == id, "proof token != this token");
         require(verifierOf[id].verifyProof(proof, pubSignals), "Your proof is not correct");
 
         _balanceOf[from]--;

@@ -1,6 +1,6 @@
 pragma circom 2.0.0;
 
-include "../node_modules/circomlib/circuits/mimcsponge.circom";
+include "./mimcsponge.circom";
 
 template Hash() {
     signal input a;
@@ -33,19 +33,13 @@ template FAOMA() {
     signal input secret;
     signal output out;
 
-    component mult1 = Multiplier2();
-    component mult2 = Multiplier2();
-    component mult3 = Multiplier2();
+    component mult = Multiplier2();
     component hasher;
 
-    mult1.in1 <== owner_address;
-    mult1.in2 <== mint_time;
-    mult2.in1 <== mult1.out;
-    mult2.in2 <== token_address;
-    mult3.in1 <== mult2.out;
-    mult3.in2 <== token_id;
-    hasher.a <== mult3.out;
-	hasher.b <== secret;
+    mult.in1 <== owner_address - mint_time;
+    mult.in2 <== token_address;
+    hasher.a <== mult.out - token_id;
+    hasher.b <== secret;
     out <== hasher.hash;
 }
 

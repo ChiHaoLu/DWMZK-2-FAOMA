@@ -7,12 +7,12 @@
 ### Setup
 
 1. Clone the repo
-```
+```sh
 $ git clone https://github.com/ChiHaoLu/DWMZK-2-FAOMA.git
 $ cd DWMZK-2-FAOMA
 ```
 2. Install Circom from the [official documentation](https://docs.circom.io/getting-started/installation/)
-```
+```sh
 // Installing dependencies in Linux or MacOS
 $ curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 
@@ -54,23 +54,31 @@ $ circom --help
 $ npm install -g snarkjs
 ```
 2. Install the dependencies with yarn
-```
+```sh
 $ yarn
 ```
 3. Continure with below operations
 
 ### Contract
 
-1. Deploy the ERC-721 Contract in the `contracts` folder with `deployToken.ts` in the `tasks` folder.
+1. Compile the contract in the `contracts` folder.
+```sh
+$ yarn compile
+```
+1. Deploy the ERC-721 Contract in the `contracts` folder with `deployToken.ts` in the `scripts` folder.
+```sh
+$ yarn execute scripts/deployToken.ts
+```
 
 ### Circuit
 1. Compile and generate the verifier of your token circuit in the `circuits` folder.
-```
+```sh
 $ cd circuits
 // Compiling the Circuits
 $ circom FAOMA.circom --r1cs --wasm --sym --c 
 $ cd FAOMA_js
-// revise the input.json
+
+// Make sure the input.json is same as your imagination
 // Generating the witness
 $ node generate_witness.js FAOMA.wasm input.json witness.wtns
 
@@ -90,12 +98,22 @@ $ snarkjs groth16 verify verification_key.json public.json proof.json
 
 // Generating Verifier
 $ snarkjs zkey export solidityverifier FAOMA_0001.zkey verifier.sol
+
+// Generating calldata
+$ snarkjs generatecall
 ```
-1. Deploy the Verifier Contract with `deployVerifier.ts` in the `tasks` folder ,and Record the address.
+1. Deploy the Verifier Contract with `deployVerifier.ts` in the `scripts` folder ,and Record the address.
+```sh
+$ cd .. // to the project root
+$ yarn execute scripts/deployVerifier.ts
+```
 
 ### Generating Image with watermark
 1. Put the target image in the `images` folder.
 1. Use the watermarking script in the `scripts` folder to watermark the target image.
+```sh
+$ yarn execute scripts/
+```
 
 ### Operations in the protocol website
 1. Start the protocol website in the `client`.
