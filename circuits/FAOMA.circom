@@ -16,8 +16,6 @@ template Hash() {
 }
 
 template FAOMA() {
-    signal input owner_address;
-    signal input mint_time;
     signal input token_address;
     signal input token_id;
     signal input secret;
@@ -25,18 +23,12 @@ template FAOMA() {
 
     component hasher1 = Hash();
     component hasher2 = Hash();
-    component hasher3 = Hash();
-    component hasher4 = Hash();
 
-    hasher1.a <== owner_address;
-    hasher1.b <== mint_time;
+    hasher1.a <== token_address;
+    hasher1.b <== token_id;
     hasher2.a <== hasher1.hash;
-    hasher2.b <== token_address;
-    hasher3.a <== hasher2.hash;
-    hasher3.b <== token_id;
-    hasher4.a <== hasher3.hash;
-    hasher4.b <== secret;
-    out <== hasher4.hash;
+    hasher2.b <== secret;
+    out <== hasher2.hash;
 }
 
 component main = FAOMA();

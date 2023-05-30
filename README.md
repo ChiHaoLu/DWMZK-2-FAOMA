@@ -68,34 +68,48 @@ $ yarn start:localNode
 ```
 3. Continue the below operations.
 
+> If you get the error `Error: listen EADDRINUSE: address already in use 127.0.0.1:8545`, try to kill the `PID` which occupy your port. 
+> ```sh
+> $ lsof -i tcp:8545
+> >
+> COMMAND   PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+> node    16783 chihaolu   23u  IPv4 0xe7a59731a25a2ba1      0t0  TCP localhost:8545 (LISTEN)
+> $ kill -9 16783
+> ```
+
 ### Contract
 
 1. Deploy the ERC-721 Contract in the `contracts` folder with `deployToken.ts` in the `scripts` folder.
 ```sh
 $ yarn deploy:Token
 >
-FAOMATokenContract deployed to 0x5FbDB2315678afecb367f032d93F642f64180aa3
-✨  Done in 3.56s.
+FAOMATokenContract deployed to 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9
+✨  Done in 3.00s.
 ```
 
 ### Circuit
-1. Compile circuit and generate the verifier of your token circuit in the `circuits` folder. Make sure your `input.json` is correct, and you have downloaded the **Power of Tau** from [here](https://github.com/iden3/snarkjs#guide).
+1. Compile circuit and generate the verifier of your token circuit in the `circuits` folder. 
+   - Make sure your `input.json` is correct(especially `token_address` is the contract address you have deployed above), 
+   - and you have downloaded the **Power of Tau** from [here](https://github.com/iden3/snarkjs#guide).
 ```sh
 $ bash ./scripts/build_circuits.sh
 >
 ...
+Verify the proof
 [INFO]  snarkJS: OK!
 Generating Verifier Contract
 [INFO]  snarkJS: EXPORT VERIFICATION KEY STARTED
 [INFO]  snarkJS: > Detected protocol: groth16
 [INFO]  snarkJS: EXPORT VERIFICATION KEY FINISHED
 Generating verifyProof calldata
-["0x0f546fe38ca0aef47eb0de71883ef213dd69d8138268a18c8fa82a7419b6027d", "0x2c72ec1b1bd13a6a316f615544fe8d896b4051f0c61c4285c4dd075e593049dd"],[["0x1d4603fd3bf8e1267da31a500499b9a76c5b1de7de3841cf668b55d3268df275", "0x09c0ef14562ac3a62f2a261ea17f927ddf6b46cffc670e5bca6a87af48a71afd"],["0x2b4c0e56cb2a3ab1fae4ebb8d91deb08e5416792817abdf69aeae16caec4d1af", "0x102690339d0fea73f2affd5eeabe093ef30f01d61ec44ddca29bce26f040e17f"]],["0x0b90f3c442294cf76ace79615cd414290688bbb2c4f7b42360e97be58398df91", "0x2bca0766be34beba92cc7ff07918ba63e12d3925a4fb9ecc3cb095f816d55a10"],["0x0444730cff8dac3879defb6c24c6e0aa50ec55b2bd1aabe444a8e1f189e2ed62"]
+["0x214a29fa5420abd96b9384a2a96a83b0e906b7d0d666a103ebb22bbdb18715db", "0x2e0aec8b93f48f44ba426b46bce4222d2266191ef5450167915406872da9492f"],[["0x06e1eb47d6eb96b074ab452eb48fbbc06141838205dafd94c27ad0574f311c25", "0x2d2bf57deebd1a7ddf984da3d1915ff6a4867675602a325f5ac21cc4d0f670ce"],["0x153159babab02438395e5e91ac1cb4a6687a50e8f00bea21e26692f6925a64af", "0x1e6d3a371679afa67683cb5306ad46992e249473a0658f734272f15daa378d7d"]],["0x0389900f8cc14dd10bb6543d5fd7b08faae588fe33e259fd98ec37b1091c1622", "0x2f3ef367a4ec5035c6d0fb5df8e629ad36c6224d22603924c1dffb0095167863"],["0x1dafb491ddc564ff3a00f7b91062fab2ed332f8e35ba7c9c34aedb1b7f1f06c1"]
 ```
-1. Record the `calldata` above.
 1. Deploy the Verifier Contract with `deployVerifier.ts` in the `scripts` folder ,and Record the address.
 ```sh
 $ yarn deploy:Verifier
+>
+VerifierContract deployed to 0x5FC8d32690cc91D4c39d9d3abcBD16989F875707
+✨  Done in 2.60s.
 ```
 
 ### Generating Image with watermark
@@ -108,7 +122,7 @@ $ yarn execute scripts/
 ### Operations in the Demo Script 
 1. Prepare the `FAOMAToken Address`, `Verifier Address`, `TokenURI`, `verifyProof calldata`.
 2. Run the `demoScript.ts` in the local devnet.
-```
+```sh
 $ yarn demo
 ```
 

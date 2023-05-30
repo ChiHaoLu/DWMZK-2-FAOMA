@@ -2,6 +2,7 @@ import { ethers } from "hardhat";
 import prompts from "prompts";
 
 async function main() {
+
   // Wallet Setup
   const accounts = await ethers.getSigners();
   const wallet = accounts[0];
@@ -19,18 +20,19 @@ async function main() {
   console.log(`FAOMATokenContract Address: ${FAOMATokenContract.address}`);
 
   // Connect Verifier Contract
+  const verifierAddress = await promptVerifierAddress();
   const VerifierContract = await ethers.getContractAt(
     "Groth16Verifier",
-    tokenAddress,
+    verifierAddress,
     wallet
   );
   console.log(`VerifierContract Address: ${VerifierContract.address}`);
 
   // Mint Token
   const tokenID = 0;
-  const tokenURI = await promptTokenURI();
+  const tokenURI = "ipfs://";
   console.log(
-    `Mint the Token - ${tokenID} with tokenURI - ${tokenURI} to Owner ${wallet.address} `
+    `Mint the Token ${tokenID} with tokenURI - "${tokenURI}" to Owner ${wallet.address} `
   );
   await FAOMATokenContract.mint(
     wallet.address,
@@ -39,22 +41,27 @@ async function main() {
     VerifierContract.address
   );
   const rtnTokenURI = await FAOMATokenContract.tokenURI(tokenID);
-  console.log("Return Token URI: ", rtnTokenURI);
+  console.log(`Return URI of the  Token ${tokenID}: `, rtnTokenURI);
   const rtnOwnership = await FAOMATokenContract.ownerOf(tokenID);
-  console.log("Return Owner Address: ", rtnOwnership);
+  console.log(`Return Owner Address of the Token ${tokenID}: `, rtnOwnership);
 
   // Transfer the ownership
   const calldata = await promptCalldata();
-  const proof = [];
-  const pubSignals = [];
-  await FAOMATokenContract.approve(receiver.address, tokenID);
+  const calldataArray = JSON.parse(`[${calldata}]`);
+  const _pA = calldataArray[0];
+  const _pB = calldataArray[1];
+  const _pC = calldataArray[2];
+  const _pubSignals = calldataArray[3];
+
   await FAOMATokenContract.transferFrom(
     wallet.address,
     receiver.address,
     tokenID,
-    proof,
-    pubSignals,
-    "0x"
+    _pA,
+    _pB,
+    _pC,
+    _pubSignals,
+    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
   );
 }
 
@@ -74,15 +81,6 @@ async function promptVerifierAddress() {
     message: "Please enter the VerifierAddress:",
   });
   return response.VerifierAddress;
-}
-
-async function promptTokenURI() {
-  const response = await prompts({
-    type: "text",
-    name: "TokenURI",
-    message: "Please enter the TokenURI of your token transfer:",
-  });
-  return response.TokenURI;
 }
 
 async function promptCalldata() {
