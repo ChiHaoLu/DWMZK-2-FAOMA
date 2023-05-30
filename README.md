@@ -9,7 +9,7 @@ See the whole project introduction & info. in the [Report](https://github.com/Ch
 - [Presentation Slides](): `.ppt`
 
 ## Workflow
-### Setup
+### 1. Setup
 
 1. Clone the repo.
 ```sh
@@ -62,7 +62,7 @@ $ npm install -g snarkjs
 ```sh
 $ yarn
 ```
-3. Start the local devnet.
+3. Start the local devnet in the new terminal / command line.
 ```sh
 $ yarn start:localNode
 ```
@@ -77,7 +77,7 @@ $ yarn start:localNode
 > $ kill -9 16783
 > ```
 
-### Contract
+### 2. Contract
 
 1. Deploy the ERC-721 Contract in the `contracts` folder with `deployToken.ts` in the `scripts` folder.
 ```sh
@@ -87,7 +87,7 @@ FAOMATokenContract deployed to 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853
 ✨  Done in 3.00s.
 ```
 
-### Circuit
+### 3. Circuit
 1. Compile circuit and generate the verifier of your token circuit in the `circuits` folder. 
    - Make sure your `input.json` is correct(especially `token_address` is the contract address you have deployed above), 
    - and you have downloaded the **Power of Tau** from [here](https://github.com/iden3/snarkjs#guide).
@@ -112,14 +112,15 @@ VerifierContract deployed to 0x8A791620dd6260079BF849Dc5567aDC3F2FdC318
 ✨  Done in 2.60s.
 ```
 
-### Generating Image with watermark
+### 4. Generating Image with watermark
+> TBD
 1. Put the target image in the `images` folder.
 1. Use the watermarking script in the `scripts` folder to watermark the target image.
 ```sh
 $ yarn execute scripts/
 ```
 
-### Operations in the Demo Script 
+### 5. Operations in the Demo Script 
 1. Prepare the `FAOMAToken Address`, `Verifier Address`, `TokenURI`, `verifyProof calldata`.
 2. Run the `demoScript.ts` in the local devnet.
 ```sh
@@ -172,7 +173,8 @@ Return Verifier Address of the Token 0:  0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92
 ✨  Done in 18.48s.
 ```
 
-### Operations in the protocol website
+### 6. Operations in the protocol website
+> TBD
 1. Start the protocol website in the `client`.
 ```sh
 $ yarn start
