@@ -68,7 +68,39 @@ The detailed operational process will be described in the next section, "Scenari
 
 ### 3.2 Specification - Digital Watermarking Script
 
-TBD
+The first code snippet imports the necessary libraries, including OpenCV (`cv2`) and the `WatermarkEncoder` from the `imwatermark` package. It reads an image file (`test.png`) and defines the watermark to be encoded (`wm`). The `WatermarkEncoder` is initialized, and the watermark is set using the `set_watermark` method by providing the data type (`bytes`) and encoding the message as UTF-8. The `encode` method is then used to add the watermark to the image (`bgr`) using the DWT-DCT-SVD technique. Finally, the watermarked image is saved as `test_w.png`.
+```python
+import cv2 
+from imwatermark import WatermarkEncoder
+
+# import os
+# os.chdir(r'<path to test.png>')
+
+bgr = cv2.imread(r'../image/test.png')
+# words to be encode
+wm = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' 
+
+encoder = WatermarkEncoder()
+encoder.set_watermark('bytes', wm.encode('utf-8'))
+bgr_encoded = encoder.encode(bgr, 'dwtDctSvd')
+
+cv2.imwrite(r'../image/test_w.png', bgr_encoded)
+```
+
+The second code snippet also imports the necessary libraries and reads the watermarked image file (`test_w.png`) using OpenCV (`cv2`). It initializes the `WatermarkDecoder` from the `imwatermark` package, specifying the data type as `bytes` and the length of the encoded message as `344`. The `decode` method is then used to extract the watermark from the image (`bgr`) using the DWT-DCT-SVD technique. The watermark is decoded as UTF-8 and printed to the console.
+
+```python
+import cv2
+from imwatermark import WatermarkDecoder
+
+# import os
+# os.chdir(r'<path to test_w.png>')
+
+bgr = cv2.imread(r'../image/test_w.png')
+decoder = WatermarkDecoder('bytes', 344) # the bytes number of the encoded message.
+watermark = decoder.decode(bgr, 'dwtDctSvd')
+print(watermark.decode('utf-8'))
+```
 
 ### 3.3 Specification - Circuit (ZKP Program)
 
