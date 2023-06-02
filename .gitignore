@@ -25,7 +25,6 @@ lerna-debug.log*
 .DS_Store
 
 .vscode
-.env
 
 # Hardhat files
 cache

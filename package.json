@@ -1,15 +1,16 @@
 {
-  "name": "dappchef-contracts",
+  "name": "multimedia-security-fnp",
   "version": "1.0.0",
   "private": true,
   "main": "index.js",
   "scripts": {
-    "start": "hardhat node & yarn compile && yarn deploy --network localhost",
+    "start:localNode": "hardhat node & yarn compile",
+    "start:localClient": "yarn start",
     "compile": "hardhat compile",
-    "deploy": "yarn compile && hardhat deploy",
+    "deploy:Token": "yarn compile && yarn execute scripts/deployToken.ts --network localhost",
+    "deploy:Verifier": "yarn compile && yarn execute scripts/deployVerifier.ts --network localhost",
     "test": "hardhat test",
-    "test-consumeMsg": "hardhat test ./test/ConsumeMsg.ts",
-    "test-reward": "hardhat test ./test/Reward.ts",
+    "demo": "yarn compile && yarn execute scripts/demoScript.ts --network localhost",
     "execute": "node -r ts-node/register -r tsconfig-paths/register hardhatRunWithArgs.ts"
   },
   "devDependencies": {
@@ -28,6 +29,10 @@
   },
   "dependencies": {
     "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@openzeppelin/contracts": "^4.9.0",
+    "circomlib": "^2.0.5",
+    "prompts": "^2.4.2",
+    "snarkjs": "^0.7.0",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.2",
     "typescript": "^4.9.4"
