@@ -57,30 +57,341 @@ In our protocol system, we not only aim to establish a genuine verification of o
 
 ### 3.1 Overview
 
-1. 藝術品生產者在圖片上嵌入數位浮水印
-4. 使用者在鑄造藝術品時會得到 secret + nullifier，同時這個 token 也會被記入 Merkle Tree 中
-6. 使用檢測器掃描圖片之後可以進到協議驗證網站
-7. 任何人都可以直接輸入 Token ID 得到該圖像的擁有者地址是誰
-8. 擁有者在協議網站輸入 secret + nullifier 即可產出 proof，也就是證明 private 變數：secret, nullifier, pathElements, pathIndices 可以計算出 public 變數：root 與 nullifierHash
-10. 可以使用這個 proof 去觸發 transfer 函式，將其擁有權轉移給新地址
+1. The art producer embeds a digital watermark on the image.
+1. Users receive a secret when minting the artwork, and the corresponding Verifier contract address is recorded for that token.
+1. After scanning the image with a detector, users can access the protocol's verification website.
+1. Anyone can directly input the Token ID to find out who the owner of the corresponding image is.
+1. The owner can generate a proof by inputting the secret locally.
+1. The owner can use this proof to trigger the transferFrom function and transfer ownership to a new address.
 
-詳細的操作過程會在下一個章節 **Scenario & Demo Result** 講述。
+The detailed operational process will be described in the next section, "Scenario & Demo Result."
 
 ### 3.2 Specification - Digital Watermarking Script
 
-TBD
+The first code snippet imports the necessary libraries, including OpenCV (`cv2`) and the `WatermarkEncoder` from the `imwatermark` package. It reads an image file (`test.png`) and defines the watermark to be encoded (`wm`). The `WatermarkEncoder` is initialized, and the watermark is set using the `set_watermark` method by providing the data type (`bytes`) and encoding the message as UTF-8. The `encode` method is then used to add the watermark to the image (`bgr`) using the DWT-DCT-SVD technique. Finally, the watermarked image is saved as `test_w.png`.
+```python
+import cv2 
+from imwatermark import WatermarkEncoder
+
+# import os
+# os.chdir(r'<path to test.png>')
+
+bgr = cv2.imread(r'../image/test.png')
+# words to be encode
+wm = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' 
+
+encoder = WatermarkEncoder()
+encoder.set_watermark('bytes', wm.encode('utf-8'))
+bgr_encoded = encoder.encode(bgr, 'dwtDctSvd')
+
+cv2.imwrite(r'../image/test_w.png', bgr_encoded)
+```
+
+The second code snippet also imports the necessary libraries and reads the watermarked image file (`test_w.png`) using OpenCV (`cv2`). It initializes the `WatermarkDecoder` from the `imwatermark` package, specifying the data type as `bytes` and the length of the encoded message as `344`. The `decode` method is then used to extract the watermark from the image (`bgr`) using the DWT-DCT-SVD technique. The watermark is decoded as UTF-8 and printed to the console.
+
+```python
+import cv2
+from imwatermark import WatermarkDecoder
+
+# import os
+# os.chdir(r'<path to test_w.png>')
+
+bgr = cv2.imread(r'../image/test_w.png')
+decoder = WatermarkDecoder('bytes', 344) # the bytes number of the encoded message.
+watermark = decoder.decode(bgr, 'dwtDctSvd')
+print(watermark.decode('utf-8'))
+```
 
 ### 3.3 Specification - Circuit (ZKP Program)
 
-TBD
+User can use `secret` and others required input to proof they know the secret of the target token in below circuit.
+
+```circom
+pragma circom 2.0.0;
+
+include "./mimcsponge.circom";
+
+template Hash() {
+    signal input a;
+    signal input b;
+    signal output hash;
+
+    component hasher = MiMCSponge(2, 220, 1);
+    hasher.ins[0] <== a;
+    hasher.ins[1] <== b;
+    hasher.k <== 0;
+
+    hash <== hasher.outs[0];
+}
+
+template FAOMA() {
+    signal input token_address;
+    signal input token_id;
+    signal input secret;
+    signal output out;
+
+    component hasher1 = Hash();
+    component hasher2 = Hash();
+
+    hasher1.a <== token_address;
+    hasher1.b <== token_id;
+    hasher2.a <== hasher1.hash;
+    hasher2.b <== secret;
+    out <== hasher2.hash;
+}
+
+component main = FAOMA();
+```
 
 ### 3.4 Specification - Smart Contract (On-Chain Verifier)
 
-TBD
+From the below contract code, the most important part is `_mint()` and `transferFrom()`. We can see the contract need to specify a verifier contract address for now minting token `verifierOf[id] = IVerifier(verifierAddr);`. And when we want to transfer the token(calling `transferFrom`), we need to give the proof that we know the token secret to verifier: `require(verifierOf[id].verifyProof(_pA, _pB, _pC, _pubSignals), "Your proof is not correct");`.
 
-### 3.5 Specification - Website (Client)
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
 
-TBD
+interface IVerifier {
+    function verifyProof(
+        uint[2] calldata _pA,
+        uint[2][2] calldata _pB,
+        uint[2] calldata _pC,
+        uint[1] calldata _pubSignals
+    ) external view returns (bool r);
+}
+
+interface IERC165 {
+    function supportsInterface(bytes4 interfaceID) external view returns (bool);
+}
+
+interface IERC721 is IERC165 {
+    function balanceOf(address owner) external view returns (uint balance);
+
+    function ownerOf(uint tokenId) external view returns (address owner);
+
+    function transferFrom(
+        address from,
+        address to,
+        uint id,
+        uint[2] calldata _pA,
+        uint[2][2] calldata _pB,
+        uint[2] calldata _pC,
+        uint[1] calldata _pubSignals,
+        address newVerifierAddr
+    ) external;
+
+    function approve(address to, uint tokenId) external;
+
+    function getApproved(uint tokenId) external view returns (address operator);
+
+    function setApprovalForAll(address operator, bool _approved) external;
+
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) external view returns (bool);
+}
+
+interface IERC721Receiver {
+    function onERC721Received(
+        address operator,
+        address from,
+        uint tokenId,
+        bytes calldata data
+    ) external returns (bytes4);
+}
+
+abstract contract ERC721 is IERC721 {
+    event Transfer(address indexed from, address indexed to, uint indexed id);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint indexed id
+    );
+    event ApprovalForAll(
+        address indexed owner,
+        address indexed operator,
+        bool approved
+    );
+
+    // Mapping from token ID to owner address
+    mapping(uint => address) internal _ownerOf;
+
+    // Mapping owner address to token count
+    mapping(address => uint) internal _balanceOf;
+
+    // Mapping from token ID to approved address
+    mapping(uint => address) internal _approvals;
+
+    // Mapping from owner to operator approvals
+    mapping(address => mapping(address => bool)) public isApprovedForAll;
+
+    // Mapping from token to verifier contract address
+    mapping(uint => IVerifier) public verifierOf;
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) external pure returns (bool) {
+        return
+            interfaceId == type(IERC721).interfaceId ||
+            interfaceId == type(IERC165).interfaceId;
+    }
+
+    function ownerOf(uint id) external view returns (address owner) {
+        owner = _ownerOf[id];
+        require(owner != address(0), "token doesn't exist");
+    }
+
+    function balanceOf(address owner) external view returns (uint) {
+        require(owner != address(0), "owner = zero address");
+        return _balanceOf[owner];
+    }
+
+    function setApprovalForAll(address operator, bool approved) external {
+        isApprovedForAll[msg.sender][operator] = approved;
+        emit ApprovalForAll(msg.sender, operator, approved);
+    }
+
+    function approve(address spender, uint id) external {
+        address owner = _ownerOf[id];
+        require(
+            msg.sender == owner || isApprovedForAll[owner][msg.sender],
+            "not authorized"
+        );
+
+        _approvals[id] = spender;
+
+        emit Approval(owner, spender, id);
+    }
+
+    function getApproved(uint id) external view returns (address) {
+        require(_ownerOf[id] != address(0), "token doesn't exist");
+        return _approvals[id];
+    }
+
+    function _isApprovedOrOwner(
+        address owner,
+        address spender,
+        uint id
+    ) internal view returns (bool) {
+        return (spender == owner ||
+            isApprovedForAll[owner][spender] ||
+            spender == _approvals[id]);
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint id,
+        uint[2] calldata _pA,
+        uint[2][2] calldata _pB,
+        uint[2] calldata _pC,
+        uint[1] calldata _pubSignals,
+        address newVerifierAddr
+    ) public {
+        require(from == _ownerOf[id], "from != owner");
+        require(to != address(0), "transfer to zero address");
+        require(
+            to.code.length == 0 ||
+                IERC721Receiver(to).onERC721Received(
+                    msg.sender,
+                    from,
+                    id,
+                    ""
+                ) ==
+                IERC721Receiver.onERC721Received.selector,
+            "unsafe recipient"
+        );
+
+        // 1FA
+        require(_isApprovedOrOwner(from, msg.sender, id), "not authorized");
+
+        // 2FA
+        require(
+            verifierOf[id].verifyProof(_pA, _pB, _pC, _pubSignals),
+            "Your proof is not correct"
+        );
+
+        _balanceOf[from]--;
+        _balanceOf[to]++;
+        _ownerOf[id] = to;
+        verifierOf[id] = IVerifier(newVerifierAddr);
+
+        delete _approvals[id];
+
+        emit Transfer(from, to, id);
+    }
+
+    function _mint(address to, uint id, address verifierAddr) internal {
+        require(to != address(0), "mint to zero address");
+        require(_ownerOf[id] == address(0), "already minted");
+
+        _balanceOf[to]++;
+        _ownerOf[id] = to;
+        verifierOf[id] = IVerifier(verifierAddr);
+
+        emit Transfer(address(0), to, id);
+    }
+
+    function _burn(uint id) internal {
+        address owner = _ownerOf[id];
+        require(owner != address(0), "not minted");
+
+        _balanceOf[owner] -= 1;
+
+        delete _ownerOf[id];
+        delete _approvals[id];
+
+        emit Transfer(owner, address(0), id);
+    }
+
+    function _exists(uint256 id) internal view returns (bool) {
+        return _ownerOf[id] != address(0);
+    }
+}
+
+abstract contract ERC721URIStorage is ERC721 {
+    // tokenId => tokenURI
+    mapping(uint256 => string) internal _tokenURIs;
+
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual returns (string memory) {
+        string memory _tokenURI = _tokenURIs[tokenId];
+
+        if (bytes(_tokenURI).length > 0) {
+            return string(abi.encodePacked(_tokenURI));
+        }
+
+        return _tokenURIs[tokenId];
+    }
+
+    function _setTokenURI(
+        uint256 id,
+        string memory _tokenURI
+    ) internal virtual {
+        require(_exists(id), "ERC721URIStorage: URI set of nonexistent token");
+        _tokenURIs[id] = _tokenURI;
+    }
+}
+
+contract FAOMAToken is ERC721URIStorage {
+    function mint(
+        address to,
+        uint id,
+        string memory _tokenURI,
+        address verfierAddr
+    ) external {
+        _mint(to, id, verfierAddr);
+        _setTokenURI(id, _tokenURI);
+    }
+
+    function burn(uint id) external {
+        require(msg.sender == _ownerOf[id], "not owner");
+        _burn(id);
+    }
+}
+```
 
 ---
 
@@ -88,20 +399,126 @@ TBD
 
 ### 4.1 Scenario 1: Absolute Ownership
 
-我們已經知道如果當前「宣告自己擁有此鏈上多媒體資產的人（`provingOwner`）」要證明其為擁有者，他需要通過以下所有內容：
-1. 他的圖片可以連結到協議網站，換句話說是此浮水印可以對應出協議合約
-2. 進入協議網站之後可以藉由輸入 Token ID 得到圖片、擁有者
-3. 可用肉眼或圖片比較器，查看此紀錄圖片（tokenURI 中的 `image` field）與該被證明圖片是否為同一張
-4. 可比較合約中紀錄該 token 的 owner address 是否為 `provingOwner`
+We already know that if the current "provingOwner" of the on-chain multimedia asset wants to prove their ownership, they need to go through the following steps:
+
+1. Their image can be linked to the protocol's website, meaning that the watermark corresponds to the protocol contract.
+1. After entering the protocol's website, they can input the Token ID to retrieve the image and owner information.
+1. They can visually compare the recorded image (the "image" field in tokenURI) with the image they want to prove, either using the naked eye or an image comparator, to verify if they are the same.
+1. They can compare the owner address recorded in the contract for that token with the "provingOwner" address.
+
+Please note that the above steps are required for proving ownership using the protocol.
 
 ### 4.2 Scenario 2: Transfer Safty - 2FA
 
-1. Owner 需要在本地端或者協議提供的 `proof` 生產網站，利用 `secret` 和 `nullerfier` 產出的 `proof`
-2. 只有 Owner 才可以呼叫自己 token 的 `transfer` 函式，這是第一階段驗證
-3. 呼叫 `transfer` 函式時，還必須附上 `proof`，才能通過第二階段驗證
-4. 成功轉移給目標擁有者的地址
-5. 利用任何不公開途徑（例如訊息軟體、面對面）將 `secret` 交給目標擁有者
+1. The owner has minted the token and given the target verifier contract.
+```typescript
+  // Mint Token
+  const tokenID = 0;
+  const tokenURI = "ipfs://";
+  console.log(
+    `\nMint the Token ${tokenID} with tokenURI - "${tokenURI}" to Owner ${wallet.address} `
+  );
+  await FAOMATokenContract.mint(
+    wallet.address,
+    tokenID,
+    tokenURI as string,
+    VerifierContract.address
+  );
+  const rtnTokenURI = await FAOMATokenContract.tokenURI(tokenID);
+  console.log(`Return URI of the  Token ${tokenID}: `, rtnTokenURI);
+  let rtnOwnership = await FAOMATokenContract.ownerOf(tokenID);
+  console.log(`Return Owner Address of the Token ${tokenID}: `, rtnOwnership);
+  let rtnVerifierAddr = await FAOMATokenContract.verifierOf(tokenID);
+  console.log(
+    `Return Verifier Address of the Token ${tokenID}: `,
+    rtnVerifierAddr
+  );
+```
+2. The owner needs to generate a "proof" using the "secret" on their local device or on the proof generation website provided by the protocol.
+```sh
+$ bash ./scripts/build_circuits.sh
+>
+...
+Verify the proof
+[INFO]  snarkJS: OK!
+Generating Verifier Contract
+[INFO]  snarkJS: EXPORT VERIFICATION KEY STARTED
+[INFO]  snarkJS: > Detected protocol: groth16
+[INFO]  snarkJS: EXPORT VERIFICATION KEY FINISHED
+Generating verifyProof calldata
+["0x0382776eb1357de8db42e3934e8096627597ab787af67f36c6619cd87dd1fefe", "0x1cf7753f14f2ff96357de2cd02293f4730f931be864575b237cf8ce25498e752"],[["0x1994485e6678734190bf3f173b3113da83404440c506a2564577532ec3c96dc9", "0x2914e04374fb0d8edd441f2b5965aa9b61747ad806ceba131b8b6a9a611a1784"],["0x2a838da22c5a3e359a8be7937abca7be716343f65c1e03c380adbd6e847e84cf", "0x0b99e4dbf0c0230ac672e33ec63a26eca2e5851f68d7ae34211ac6bae5bd197e"]],["0x068f5af5c3e7ea59acc6414e4fbe3a4f7d9aaa966848fcfdae93d6923b3aef01", "0x2449799406b0955ecab548fdc34d4001aa0b6dc8c3850962c3478bdc8f598a9a"],["0x12f60538e3f1ea532c768145dd585b68c37814b296c49377df123ec80be9a0ab"]
+```
+3. Only the owner can call the "transferFrom" function for their token. This is the first stage of verification.
+4. When calling the "transferFrom" function, the owner must include the "proof" to pass the second stage of verification.
+```typescript
+  await FAOMATokenContract.transferFrom(
+    wallet.address,
+    receiver.address,
+    tokenID,
+    _pA,
+    _pB,
+    _pC,
+    _pubSignals,
+    newVerifierAddr
+  );
+```
+5. If the verification is successful, the token will be transferred to the target owner's address.
+```typescript
+  rtnOwnership = await FAOMATokenContract.ownerOf(tokenID);
+  console.log(`Return Owner Address of the Token ${tokenID}: `, rtnOwnership);
+  rtnVerifierAddr = await FAOMATokenContract.verifierOf(tokenID);
+  console.log(
+    `Return Verifier Address of the Token ${tokenID}: `,
+    rtnVerifierAddr
+  );
+```
+6. The owner should securely transfer the "secret" to the target owner through any confidential means, such as messaging applications or in-person exchanges.
 
+```
+Operator Address:  0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+Receiver Address:  0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+✔ Please enter the TokenAddress: … 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853
+FAOMATokenContract Address: 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853
+✔ Please enter the VerifierAddress: … 0x8A791620dd6260079BF849Dc5567aDC3F2FdC318
+VerifierContract Address: 0x8A791620dd6260079BF849Dc5567aDC3F2FdC318
+
+Mint the Token 0 with tokenURI - "ipfs://" to Owner 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 
+Return URI of the  Token 0:  ipfs://
+Return Owner Address of the Token 0:  0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+Return Verifier Address of the Token 0:  0x8A791620dd6260079BF849Dc5567aDC3F2FdC318
+✔ Please enter the Calldata of your token transfer verifyProof: … ["0x0382776eb1357de8db42e3934e8096627597ab787af67f36c6619cd87dd1fefe", "0x1cf7753f14f2ff96357de2cd02293f4730f931be864575b237cf8ce25498e752"],[["0x1994485e6678734190bf3f173b3113da83404440c506a2564577532ec3c96dc9", "0x2914e04374fb0d8edd441f2b5965aa9b61747ad806ceba131b8b6a9a611a1784"],["0x2a838da22c5a3e359a8be7937abca7be716343f65c1e03c380adbd6e847e84cf", "0x0b99e4dbf0c0230ac672e33ec63a26eca2e5851f68d7ae34211ac6bae5bd197e"]],["0x068f5af5c3e7ea59acc6414e4fbe3a4f7d9aaa966848fcfdae93d6923b3aef01", "0x2449799406b0955ecab548fdc34d4001aa0b6dc8c3850962c3478bdc8f598a9a"],["0x12f60538e3f1ea532c768145dd585b68c37814b296c49377df123ec80be9a0ab"]
+
+Transfer the Token 0 
+   - from Owner 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 
+   - to Receiver 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 
+   - with new verifier contract address 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+   - and proof:
+[
+  [
+    '0x0382776eb1357de8db42e3934e8096627597ab787af67f36c6619cd87dd1fefe',
+    '0x1cf7753f14f2ff96357de2cd02293f4730f931be864575b237cf8ce25498e752'
+  ],
+  [
+    [
+      '0x1994485e6678734190bf3f173b3113da83404440c506a2564577532ec3c96dc9',
+      '0x2914e04374fb0d8edd441f2b5965aa9b61747ad806ceba131b8b6a9a611a1784'
+    ],
+    [
+      '0x2a838da22c5a3e359a8be7937abca7be716343f65c1e03c380adbd6e847e84cf',
+      '0x0b99e4dbf0c0230ac672e33ec63a26eca2e5851f68d7ae34211ac6bae5bd197e'
+    ]
+  ],
+  [
+    '0x068f5af5c3e7ea59acc6414e4fbe3a4f7d9aaa966848fcfdae93d6923b3aef01',
+    '0x2449799406b0955ecab548fdc34d4001aa0b6dc8c3850962c3478bdc8f598a9a'
+  ],
+  [
+    '0x12f60538e3f1ea532c768145dd585b68c37814b296c49377df123ec80be9a0ab'
+  ]
+]
+Return Owner Address of the Token 0:  0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+Return Verifier Address of the Token 0:  0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+```
 
 ---
 
@@ -142,16 +559,17 @@ Lastly, as an additional explanation, using the secret alone is sufficient to pr
 
 ## 6. Conclusion
 
-使用我們設計的協議的 Token 會有以下的壞處：
-1. 在此協議還沒廣泛普及之前，可能效果會不如預期，但如果今天發行商有採用這個協議，那有注意到此藝術品及其發行方式的人就會知道怎麼驗證 ownership
-2. 由於驗證 ZKP 的過程是在合約中進行，這將導致 transfer ownership 的 Gas 耗費提高很多（相比之前沒有實作此協議的原始 ERC-721 合約）
-3. 撰寫合約的技術門檻將會提高
-4. 轉移 Token 的步驟會更複雜
-5. 將 ownership 和 signership 解耦會導致每個 token 都需要紀錄一個 secret
+There are the following disadvantages to using tokens based on our designed protocol:
 
-但如果透過協議提供的 Interface，可以將門檻、步驟以及轉移資產的相關操作門檻降得非常低。同時如果錢包商支援此協議的 Token 的話，也能夠統一保管所有 Token 的 Secret，這是相對美好的想像，但需要達到協議預期的安全性本來就會需要付出一些代價，無論這些代價是技術上還是手續費成本上。不過如果今天這個鏈上證明或鏈上藝術品是地契或國寶，那或許多幾層保護是更好的。
+1. Before this protocol becomes widely adopted, the effectiveness may not meet expectations. However, if issuers adopt this protocol, those who are aware of the artwork and its distribution method will know how to verify ownership.
+1. The process of verifying Zero-Knowledge Proofs (ZKP) is performed within the contract, which will result in significantly higher gas costs for transferring ownership compared to the original ERC-721 contract that did not implement this protocol.
+1. The technical threshold for writing contracts will increase.
+1. The steps involved in transferring tokens will become more complex.
+1. Decoupling ownership and signership will require each token to record a separate secret.
 
-另外，關於 ZKP 在坊間與多媒體的討論其實並不少，但大部分都是將多媒體的部分或全體進行模糊化、銳利化、方向顛倒等影像處理，這對藝術品來說其實毫無意義，因為多媒體資產便是拿來欣賞的，如果將其全盤掩蓋藏起來的話，不免失去了藝術品與實用價值的意義。
+However, if the interface provided by the protocol is used, the thresholds, steps, and operational thresholds for transferring assets can be significantly reduced. At the same time, if wallet providers support the tokens of this protocol, it is also possible to securely manage the secrets of all tokens. This is a relatively ideal scenario, but achieving the expected security of the protocol will require some costs, whether they are technical or transaction fees. However, if the on-chain proof or on-chain artwork is a title deed or a national treasure, perhaps having a few more layers of protection would be better.
+
+In addition, there have been discussions about Zero-Knowledge Proofs (ZKP) in the industry, including multimedia applications. However, most of these discussions focus on blurring, sharpening, or flipping the direction of multimedia content through image processing. This is actually meaningless for artworks because multimedia assets are meant to be appreciated. If the entire content is completely obscured and hidden, it would inevitably lose the meaning of both artistic and practical value.
 
 ---
 
