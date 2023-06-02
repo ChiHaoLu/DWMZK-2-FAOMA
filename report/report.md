@@ -57,20 +57,22 @@ In our protocol system, we not only aim to establish a genuine verification of o
 
 ### 3.1 Overview
 
-1. 藝術品生產者在圖片上嵌入數位浮水印
-4. 使用者在鑄造藝術品時會得到 secret + nullifier，同時這個 token 也會被記入 Merkle Tree 中
-6. 使用檢測器掃描圖片之後可以進到協議驗證網站
-7. 任何人都可以直接輸入 Token ID 得到該圖像的擁有者地址是誰
-8. 擁有者可自行在本地輸入 secret 即可產出 proof
-10. 可以使用這個 proof 去觸發 transfer 函式，將其擁有權轉移給新地址
+1. The art producer embeds a digital watermark on the image.
+1. Users receive a secret when minting the artwork, and the corresponding Verifier contract address is recorded for that token.
+1. After scanning the image with a detector, users can access the protocol's verification website.
+1. Anyone can directly input the Token ID to find out who the owner of the corresponding image is.
+1. The owner can generate a proof by inputting the secret locally.
+1. The owner can use this proof to trigger the transferFrom function and transfer ownership to a new address.
 
-詳細的操作過程會在下一個章節 **Scenario & Demo Result** 講述。
+The detailed operational process will be described in the next section, "Scenario & Demo Result."
 
 ### 3.2 Specification - Digital Watermarking Script
 
 TBD
 
 ### 3.3 Specification - Circuit (ZKP Program)
+
+User can use `secret` and others required input to proof they know the secret of the target token in below circuit.
 
 ```circom
 pragma circom 2.0.0;
@@ -110,6 +112,8 @@ component main = FAOMA();
 ```
 
 ### 3.4 Specification - Smart Contract (On-Chain Verifier)
+
+From the below contract code, the most important part is `_mint()` and `transferFrom()`. We can see the contract need to specify a verifier contract address for now minting token `verifierOf[id] = IVerifier(verifierAddr);`. And when we want to transfer the token(calling `transferFrom`), we need to give the proof that we know the token secret to verifier: `require(verifierOf[id].verifyProof(_pA, _pB, _pC, _pubSignals), "Your proof is not correct");`.
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -379,7 +383,7 @@ Please note that the above steps are required for proving ownership using the pr
 ### 4.2 Scenario 2: Transfer Safty - 2FA
 
 1. The owner needs to generate a "proof" using the "secret" on their local device or on the proof generation website provided by the protocol.
-1. Only the owner can call the "transfer" function for their token. This is the first stage of verification.
+1. Only the owner can call the "transferFrom" function for their token. This is the first stage of verification.
 1. When calling the "transfer" function, the owner must include the "proof" to pass the second stage of verification.
 1. If the verification is successful, the token will be transferred to the target owner's address.
 1. The owner should securely transfer the "secret" to the target owner through any confidential means, such as messaging applications or in-person exchanges.
