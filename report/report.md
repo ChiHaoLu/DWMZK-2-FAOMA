@@ -393,10 +393,6 @@ contract FAOMAToken is ERC721URIStorage {
 }
 ```
 
-### 3.5 Specification - Website (Client)
-
-TBD
-
 ---
 
 ## 4. Scenario & Demo Result
@@ -414,11 +410,69 @@ Please note that the above steps are required for proving ownership using the pr
 
 ### 4.2 Scenario 2: Transfer Safty - 2FA
 
-1. The owner needs to generate a "proof" using the "secret" on their local device or on the proof generation website provided by the protocol.
-1. Only the owner can call the "transferFrom" function for their token. This is the first stage of verification.
-1. When calling the "transfer" function, the owner must include the "proof" to pass the second stage of verification.
-1. If the verification is successful, the token will be transferred to the target owner's address.
-1. The owner should securely transfer the "secret" to the target owner through any confidential means, such as messaging applications or in-person exchanges.
+1. The owner has minted the token and given the target verifier contract.
+```typescript
+  // Mint Token
+  const tokenID = 0;
+  const tokenURI = "ipfs://";
+  console.log(
+    `\nMint the Token ${tokenID} with tokenURI - "${tokenURI}" to Owner ${wallet.address} `
+  );
+  await FAOMATokenContract.mint(
+    wallet.address,
+    tokenID,
+    tokenURI as string,
+    VerifierContract.address
+  );
+  const rtnTokenURI = await FAOMATokenContract.tokenURI(tokenID);
+  console.log(`Return URI of the  Token ${tokenID}: `, rtnTokenURI);
+  let rtnOwnership = await FAOMATokenContract.ownerOf(tokenID);
+  console.log(`Return Owner Address of the Token ${tokenID}: `, rtnOwnership);
+  let rtnVerifierAddr = await FAOMATokenContract.verifierOf(tokenID);
+  console.log(
+    `Return Verifier Address of the Token ${tokenID}: `,
+    rtnVerifierAddr
+  );
+```
+2. The owner needs to generate a "proof" using the "secret" on their local device or on the proof generation website provided by the protocol.
+```sh
+$ bash ./scripts/build_circuits.sh
+>
+...
+Verify the proof
+[INFO]  snarkJS: OK!
+Generating Verifier Contract
+[INFO]  snarkJS: EXPORT VERIFICATION KEY STARTED
+[INFO]  snarkJS: > Detected protocol: groth16
+[INFO]  snarkJS: EXPORT VERIFICATION KEY FINISHED
+Generating verifyProof calldata
+["0x0382776eb1357de8db42e3934e8096627597ab787af67f36c6619cd87dd1fefe", "0x1cf7753f14f2ff96357de2cd02293f4730f931be864575b237cf8ce25498e752"],[["0x1994485e6678734190bf3f173b3113da83404440c506a2564577532ec3c96dc9", "0x2914e04374fb0d8edd441f2b5965aa9b61747ad806ceba131b8b6a9a611a1784"],["0x2a838da22c5a3e359a8be7937abca7be716343f65c1e03c380adbd6e847e84cf", "0x0b99e4dbf0c0230ac672e33ec63a26eca2e5851f68d7ae34211ac6bae5bd197e"]],["0x068f5af5c3e7ea59acc6414e4fbe3a4f7d9aaa966848fcfdae93d6923b3aef01", "0x2449799406b0955ecab548fdc34d4001aa0b6dc8c3850962c3478bdc8f598a9a"],["0x12f60538e3f1ea532c768145dd585b68c37814b296c49377df123ec80be9a0ab"]
+```
+4. Only the owner can call the "transferFrom" function for their token. This is the first stage of verification.
+5. When calling the "transferFrom" function, the owner must include the "proof" to pass the second stage of verification.
+```typescript
+  await FAOMATokenContract.transferFrom(
+    wallet.address,
+    receiver.address,
+    tokenID,
+    _pA,
+    _pB,
+    _pC,
+    _pubSignals,
+    newVerifierAddr
+  );
+```
+7. If the verification is successful, the token will be transferred to the target owner's address.
+```typescript
+  rtnOwnership = await FAOMATokenContract.ownerOf(tokenID);
+  console.log(`Return Owner Address of the Token ${tokenID}: `, rtnOwnership);
+  rtnVerifierAddr = await FAOMATokenContract.verifierOf(tokenID);
+  console.log(
+    `Return Verifier Address of the Token ${tokenID}: `,
+    rtnVerifierAddr
+  );
+```
+9. The owner should securely transfer the "secret" to the target owner through any confidential means, such as messaging applications or in-person exchanges.
 
 ```
 Operator Address:  0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
